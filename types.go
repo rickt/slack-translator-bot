@@ -1,5 +1,14 @@
 package slacktranslatorbot
 
+// struct for Google Translate API response
+type GoogleTranslateAPIResponse struct {
+	Data struct {
+		Translations []struct {
+			TranslatedText string `json:"translatedText"`
+		} `json:"translations"`
+	} `json:"data"`
+}
+
 // struct for runtime environment variables
 type envVars struct {
 	BaseURL     string

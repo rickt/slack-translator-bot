@@ -1,5 +1,3 @@
-// http://play.golang.org/p/SQjlJEcHF1
-
 package slacktranslatorbot
 
 import (
@@ -17,15 +15,6 @@ import (
 var (
 	env envVars
 )
-
-// types
-type GoogleTranslateAPIResponse struct {
-	Data struct {
-		Translations []struct {
-			TranslatedText string `json:"translatedText"`
-		} `json:"translations"`
-	} `json:"data"`
-}
 
 // helper function to do a case-insensitive search
 func ciContains(a, b string) bool {
