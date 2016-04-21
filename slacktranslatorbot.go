@@ -7,6 +7,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -19,6 +20,15 @@ var (
 // helper function to do a case-insensitive search
 func ciContains(a, b string) bool {
 	return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
+}
+
+// helper func to properly escape/"url encode" text
+func escapeText(str string) (string, error) {
+	u, err := url.Parse(str)
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
 }
 
 // helper func to read the api response body (an io.ReadCloser) and output it as simple string
@@ -72,7 +82,13 @@ func handler_translate(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	// build the url! an example call to translate API:
 	// https://www.googleapis.com/language/translate/v2?q=QUERY&target=ja&format=text&source=en&key=KEY
-	texttobetranslated = r.URL.Query().Get("text")
+	// texttobetranslated = r.URL.Query().Get("text")
+	// be sure to properly escape the query text
+	texttobetranslated, err = escapeText(r.URL.Query().Get("text"))
+	if err != nil {
+		fmt.Fprintf(w, "\n\nError escaping query text, err=%s, rsp.Body= %s", err.Error(), r.Body)
+		return
+	}
 	apiurl := fmt.Sprintf(env.BaseURL + "?q=" + texttobetranslated + "&target=" + to + "&source=" + from + "&format=html&key=" + env.APIKey)
 	// create an http.Client and make the call to the Google Translate API
 	client := urlfetch.Client(ctx)
