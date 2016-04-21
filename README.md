@@ -1,6 +1,6 @@
 # slack-translator-bot
 ##### overview
-demo Golang backend code for a Slack /slash command to translate text from one language to another.
+demo Golang backend code for a Slack /slash command to translate text from one language to another. NOTE: this demo code is google appengine-specific. rip out those mini bits and you can run it anywhere. 
 
 i wrote this because i wanted 2x new /slash commands:
 
