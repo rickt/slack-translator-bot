@@ -1,0 +1,25 @@
+# This is a comment
+
+# application is mandatory
+application: yourappnamegoeshere
+
+# version is mandatory
+version: 1-1
+
+# environment variables
+env_variables:
+        DEBUG: 'false'
+        GOOGLE_TRANSLATE_BASEURL: 'https://www.googleapis.com/language/translate/v2'
+        GOOGLE_TRANSLATE_API_KEY: 'your google translate api key goes here'
+        SLACK_VERIFY_TOKEN: 'your slack slash command verify token goes here'
+
+# runtime is mandatory
+runtime: go
+
+# api_version is mandatory
+api_version: go1
+
+# handlers is mandatory
+handlers:
+- url: /.*
+  script: _go_app
