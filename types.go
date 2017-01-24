@@ -11,8 +11,9 @@ type GoogleTranslateAPIResponse struct {
 
 // struct for runtime environment variables
 type envVars struct {
-	BaseURL     string
 	APIKey      string
+	APIBaseURL  string
+	APIPath     string
 	VerifyToken string
 }
 

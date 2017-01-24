@@ -22,15 +22,6 @@ func ciContains(a, b string) bool {
 	return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
 }
 
-// helper func to properly escape/"url encode" text
-func escapeText(str string) (string, error) {
-	u, err := url.Parse(str)
-	if err != nil {
-		return "", err
-	}
-	return u.String(), nil
-}
-
 // helper func to read the api response body (an io.ReadCloser) and output it as simple string
 func getBody(resp *http.Response) string {
 	buf := new(bytes.Buffer)
@@ -42,7 +33,8 @@ func getBody(resp *http.Response) string {
 func init() {
 	// get runtime options from the app.yaml
 	env.APIKey = os.Getenv("GOOGLE_TRANSLATE_API_KEY")
-	env.BaseURL = os.Getenv("GOOGLE_TRANSLATE_BASEURL")
+	env.APIBaseURL = os.Getenv("GOOGLE_TRANSLATE_API_BASEURL")
+	env.APIPath = os.Getenv("GOOGLE_TRANSLATE_API_PATH")
 	env.VerifyToken = os.Getenv("SLACK_VERIFY_TOKEN")
 	// setup http handlers
 	http.HandleFunc("/", handler_redirect)
@@ -56,18 +48,20 @@ func handler_redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_translate(w http.ResponseWriter, r *http.Request) {
-	// what is our from/to?
-	var emoji_from, emoji_to, from, to, texttobetranslated string
-	// this could be handled much better, but whatever this is just demo code
+	// vars
+	var emoji_from, emoji_to, srclang, dstlang, ttt string
+	var apiurl *url.URL
+	// what are our src and dst languages?
+	// note: this could be handled much better, but whatever this is just demo code
 	if ciContains(r.RequestURI, "en_ja") {
-		from = "en"
-		to = "ja"
+		srclang = "en"
+		dstlang = "ja"
 		emoji_from = ":uk:"
 		emoji_to = ":jp:"
 	}
 	if ciContains(r.RequestURI, "ja_en") {
-		from = "ja"
-		to = "en"
+		srclang = "ja"
+		dstlang = "en"
 		emoji_from = ":jp:"
 		emoji_to = ":uk:"
 	}
@@ -80,20 +74,22 @@ func handler_translate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	// what is ttt (text to translate)?
+	ttt = r.URL.Query().Get("text")
 	// build the url! an example call to translate API:
-	// https://www.googleapis.com/language/translate/v2?q=QUERY&target=ja&format=text&source=en&key=KEY
-	// texttobetranslated = r.URL.Query().Get("text")
-	// be sure to properly escape the query text
-	texttobetranslated = r.URL.Query().Get("text")
-	// texttobetranslated, err = escapeText(r.URL.Query().Get("text"))
-	if err != nil {
-		fmt.Fprintf(w, "\n\nError escaping query text, err=%s, rsp.Body= %s", err.Error(), r.Body)
-		return
-	}
-	apiurl := fmt.Sprintf(env.BaseURL + "?q=" + texttobetranslated + "&target=" + to + "&source=" + from + "&format=text&key=" + env.APIKey)
+	// https://www.googleapis.com/language/translate/v2?q=QUERY&target=DSTLANG&format=FORMAT&source=SRCLANG&key=KEY
+	apiurl, _ = url.Parse(env.APIBaseURL)
+	apiurl.Path += env.APIPath
+	params := url.Values{}
+	params.Add("target", dstlang)
+	params.Add("source", srclang)
+	params.Add("format", "text")
+	params.Add("key", env.APIKey)
+	params.Add("q", ttt)
+	apiurl.RawQuery = params.Encode()
 	// create an http.Client and make the call to the Google Translate API
 	client := urlfetch.Client(ctx)
-	response, err := client.Get(apiurl)
+	response, err := client.Get(apiurl.String())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -108,7 +104,7 @@ func handler_translate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// print out the "from"
-	fmt.Fprintf(w, "*Original* %s = %s\n\n", emoji_from, texttobetranslated)
+	fmt.Fprintf(w, "*Original* %s = %s\n\n", emoji_from, ttt)
 	// print out the "to"
 	for _, z := range jsonresponse.Data.Translations {
 		fmt.Fprintf(w, "*Translated* %s = %s\n\n", emoji_to, z.TranslatedText)
