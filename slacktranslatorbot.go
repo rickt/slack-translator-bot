@@ -84,12 +84,13 @@ func handler_translate(w http.ResponseWriter, r *http.Request) {
 	// https://www.googleapis.com/language/translate/v2?q=QUERY&target=ja&format=text&source=en&key=KEY
 	// texttobetranslated = r.URL.Query().Get("text")
 	// be sure to properly escape the query text
-	texttobetranslated, err = escapeText(r.URL.Query().Get("text"))
+	texttobetranslated = r.URL.Query().Get("text")
+	// texttobetranslated, err = escapeText(r.URL.Query().Get("text"))
 	if err != nil {
 		fmt.Fprintf(w, "\n\nError escaping query text, err=%s, rsp.Body= %s", err.Error(), r.Body)
 		return
 	}
-	apiurl := fmt.Sprintf(env.BaseURL + "?q=" + texttobetranslated + "&target=" + to + "&source=" + from + "&format=html&key=" + env.APIKey)
+	apiurl := fmt.Sprintf(env.BaseURL + "?q=" + texttobetranslated + "&target=" + to + "&source=" + from + "&format=text&key=" + env.APIKey)
 	// create an http.Client and make the call to the Google Translate API
 	client := urlfetch.Client(ctx)
 	response, err := client.Get(apiurl)
