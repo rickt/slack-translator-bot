@@ -29,3 +29,4 @@ instructions are for English <--> Japanese
 5. `$ go build && goapp deploy`
 6. profit
 
+# slack-directory-bot

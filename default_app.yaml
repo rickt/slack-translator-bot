@@ -1,0 +1,27 @@
+# This is a comment
+
+# application is mandatory
+application: your-appspot-project-name-goes-here
+
+# version is mandatory
+version: 1-1
+
+# environment variables
+env_variables:
+        DEBUG: 'false'
+        OXFORD_DICTIONARY_API_BASEURL: 'https://od-api.oxforddictionaries.com/api/v1'
+        OXFORD_DICTIONARY_APP_ID: 'your Oxford Dictionary API App ID goes here'
+        OXFORD_DICTIONARY_APP_KEY: 'your Oxford Dictionary API App Key goes here'
+        OXFORD_DICTIONARY_API_PATH: '/entries/en/'
+        SLACK_VERIFY_TOKEN: 'your Slack verification token goes here'
+
+# runtime is mandatory
+runtime: go
+
+# api_version is mandatory
+api_version: go1
+
+# handlers is mandatory
+handlers:
+- url: /.*
+  script: _go_app
